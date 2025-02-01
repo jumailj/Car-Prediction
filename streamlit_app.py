@@ -3,6 +3,7 @@ from ultralytics import YOLO
 from PIL import Image
 import numpy as np
 import cv2
+import pandas as pd  # Import for tabular display
 
 # Streamlit UI
 st.title("YOLO Object Detection")
@@ -32,6 +33,8 @@ if uploaded_file is not None:
         img_np = np.array(image)
         img_cv = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
 
+        predictions = []  # List to store predictions
+
         # Extract class names, IDs, and confidence scores
         for box in result.boxes:
             x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
@@ -44,19 +47,22 @@ if uploaded_file is not None:
             label = f"{class_name} ({confidence:.2f})"
             cv2.putText(img_cv, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
+            # Append prediction to list
+            predictions.append({
+                "Class": class_name,
+                "Confidence": f"{confidence:.2f}"
+            })
+
         # Convert back to RGB format for Streamlit
         img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
 
         # Display image with bounding boxes
         st.image(img_rgb, caption="Predicted Image", use_container_width=True)
 
-        # Show predictions
-        st.write("Predictions:")
-        for box in result.boxes:
-            class_id = int(box.cls)
-            confidence = box.conf[0].item()
-            class_name = result.names[class_id]
-            st.write(f"Class: {class_name}, Confidence: {confidence:.2f}")
+        # Show predictions as a table
+        if predictions:
+            st.write("Predictions:")
+            st.table(pd.DataFrame(predictions))  # Display as table
 
     else:
         st.write("No objects detected.")
