@@ -6,7 +6,7 @@ import cv2
 import pandas as pd  # Import for tabular display
 
 # Streamlit UI
-st.title("YOLO Object Detection")
+st.title("Multi-Class Vehicle Classication for Online Auto Marketplac")
 st.write("Upload an image to predict objects.")
 
 # Upload image
