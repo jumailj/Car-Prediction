@@ -1,7 +1,8 @@
 import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
-import io
+import numpy as np
+import cv2
 
 # Streamlit UI
 st.title("YOLO Object Detection")
@@ -12,40 +13,50 @@ uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png
 
 if uploaded_file is not None:
     # Display the uploaded image
-    st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+    st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
     
     # Convert the uploaded image to a PIL image
-    image = Image.open(uploaded_file)
+    image = Image.open(uploaded_file).convert("RGB")
 
-    # Load YOLO model (make sure you have your `last.pt` model in the correct path)
-    model = YOLO("last.pt")  # Change this to your actual model path
-    
+    # Load YOLO model (Make sure "last.pt" exists)
+    model = YOLO("last.pt")
+
     # Run inference
-    results = model(image)
+    results = model.predict(image)
 
-    # Check if detection is successful
-    if results:
-        # Display the image with the bounding boxes drawn on detected objects
-        st.image(results[0].plot(), caption="Predicted Image", use_column_width=True)
+    # Get first result
+    result = results[0]
+
+    if len(result.boxes) > 0:  # Check if any objects are detected
+        # Convert image to OpenCV format for drawing
+        img_np = np.array(image)
+        img_cv = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
 
         # Extract class names, IDs, and confidence scores
-        predictions = []
-        for result in results[0].boxes:
-            predicted_class_id = int(result.cls)  # Class ID
-            predicted_class = results[0].names[predicted_class_id]  # Class name
-            confidence = result.conf[0].item()  # Confidence score
+        for box in result.boxes:
+            x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
+            confidence = box.conf[0].item()  # Confidence score
+            class_id = int(box.cls)  # Class ID
+            class_name = result.names[class_id]  # Class name
 
-            predictions.append({
-                "class_label": predicted_class,
-                "class_id": predicted_class_id,
-                "confidence": confidence
-            })
-        
-        # Display predictions
+            # Draw bounding box and label
+            cv2.rectangle(img_cv, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            label = f"{class_name} ({confidence:.2f})"
+            cv2.putText(img_cv, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+        # Convert back to RGB format for Streamlit
+        img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
+
+        # Display image with bounding boxes
+        st.image(img_rgb, caption="Predicted Image", use_container_width=True)
+
+        # Show predictions
         st.write("Predictions:")
-        for prediction in predictions:
-            st.write(f"Class: {prediction['class_label']}")
-            st.write(f"Class ID: {prediction['class_id']}")
-            st.write(f"Confidence: {prediction['confidence']:.2f}")
+        for box in result.boxes:
+            class_id = int(box.cls)
+            confidence = box.conf[0].item()
+            class_name = result.names[class_id]
+            st.write(f"Class: {class_name}, Confidence: {confidence:.2f}")
+
     else:
         st.write("No objects detected.")
