@@ -1,0 +1,8 @@
+path: C:/Users/jumai/Documents/Car-Prediction/custom-data
+
+train: C:/Users/jumai/Documents/Car-Prediction/custom-data/images/train
+val: C:/Users/jumai/Documents/Car-Prediction/custom-data/images/val
+
+names:
+  0: smart fortwo Convertible 2012
+  1: Volvo C30 Hatchback 2012

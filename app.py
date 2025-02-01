@@ -7,7 +7,7 @@ import io
 app = FastAPI()
 
 # Load YOLO model (ensure best.pt is in the same directory)
-MODEL_PATH = "last.pt"  # Change this if needed
+MODEL_PATH = "best.pt" 
 model = YOLO(MODEL_PATH)
 
 # Define endpoint
@@ -21,8 +21,9 @@ async def predict(file: UploadFile = File(...)):
     results = model(image)
 
     # Check if detection is successful
+
+    print(results)
     if results:
-        print(results)
         # Extract class name, class ID, and confidence from the first detected object
         # YOLO returns 'results' as a list, with each result containing a class and score
         predictions = []
