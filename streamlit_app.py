@@ -7,6 +7,7 @@ import pandas as pd  # Import for tabular display
 
 # Streamlit UI
 st.title("Multi-Class Vehicle Classication for Online Auto Marketplac")
+st.write("Currently supported, Volvo C30 Hatchback 2012 and smart fortwo Convertible 2012")
 st.write("Upload an image to predict objects.")
 
 # Upload image
